@@ -1,0 +1,35 @@
+
+// Core Aggregations
+Headcount := DISTINCTCOUNT ( Employee[Name] )
+Total Salary := SUM ( Employee[Salary] )
+Average Salary := AVERAGE ( Employee[Salary] )
+
+// Compliance / Pay Gap
+Min-Wage Compliance % :=
+DIVIDE ( SUM ( Employee[Is_Compliant_MinWage] ), [Headcount] )
+
+% Below Min Wage := 1 - [Min-Wage Compliance %]
+
+Gender Pay Gap (Avg) :=
+VAR avgMale =
+    CALCULATE ( [Average Salary], KEEPFILTERS ( Employee[Gender_Clean] = "Male" ) )
+VAR avgFemale =
+    CALCULATE ( [Average Salary], KEEPFILTERS ( Employee[Gender_Clean] = "Female" ) )
+RETURN
+avgMale - avgFemale
+
+// Salary Composition
+Salary % by Gender :=
+DIVIDE ( [Total Salary], CALCULATE ( [Total Salary], ALL ( Employee[Gender_Clean] ) ) )
+
+Employees in Salary Range :=
+CALCULATE ( [Headcount], REMOVEFILTERS ( Employee[Name] ) )
+
+// Bonus & Payout
+Bonus Amount := SUMX ( Employee, Employee[Salary] * Employee[BonusRate] )
+Average Bonus := DIVIDE ( [Bonus Amount], [Headcount] )
+Total Payout := [Total Salary] + [Bonus Amount]
+
+// Rating
+Rating Count := COUNTROWS ( Employee )
+Average Rating (Score) := AVERAGE ( DimRating[RatingScore] )
